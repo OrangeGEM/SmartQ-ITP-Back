@@ -22,10 +22,6 @@ jobs:
           command: |
             npm i;
       - run: 
-          name: "Build app"
-          command: |
-            npm run build;
-      - run: 
           name: "Deploy"
           command: |
             chmod +x ./install.sh;
