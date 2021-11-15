@@ -1,0 +1,23 @@
+{
+  "name": "smartq-itp-back",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OrangeMGE-ITP/SmartQ-ITP-Back.git"
+  },
+  "author": "OrangeMGE-ITP (Vitalii Volkov)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OrangeMGE-ITP/SmartQ-ITP-Back/issues"
+  },
+  "homepage": "https://github.com/OrangeMGE-ITP/SmartQ-ITP-Back#readme",
+  "dependencies": {
+    "config": "^3.3.6",
+    "express": "^4.17.1"
+  }
+}
