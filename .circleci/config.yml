@@ -24,8 +24,9 @@ jobs:
       - run: 
           name: "Deploy"
           command: |
+            zip back.zip -r .;
             chmod +x ./install.sh;
-            scp -o StrictHostKeyChecking=no fe-build.zip $SSH_HOST:fe-build.zip;
+            scp -o StrictHostKeyChecking=no back.zip $SSH_HOST:back.zip;
             scp -o StrictHostKeyChecking=no install.sh $SSH_HOST:install.sh;
             ssh -o StrictHostKeyChecking=no $SSH_HOST './install.sh';
 # Invoke jobs via workflows
