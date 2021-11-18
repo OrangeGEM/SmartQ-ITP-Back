@@ -1,0 +1,5 @@
+{
+    "port" : 5001,
+    "jwtSecret" : "",
+    "mongoUrl" : "mongodb+srv://Orange:Vetel12312@cluster0.mdnoh.mongodb.net/smartq?retryWrites=true&w=majority"
+}
