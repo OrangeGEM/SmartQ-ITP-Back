@@ -6,13 +6,7 @@ const cors = require('cors');
 const app = express();
 app.use(express.json({ extended: true }))
 
-app.use(
-    cors({
-      credentials: true,
-      origin: ["http://localhost:3000"],
-      optionsSuccessStatus: 200
-    })
-  );
+app.use(cors());
 
 
 app.use('/api/auth', require('./routes/auth.routes'));
