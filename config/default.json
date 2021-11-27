@@ -8,5 +8,6 @@
     "SMTP_PORT" : "465",
     "SMTP_USER" : "Orange-temp@yandex.ru",
     "SMTP_PASSWORD" : "vmedkgbgjenroclp",
-    "API_URL" : "http://localhost:5001"
+    "API_URL" : "http://localhost:5001",
+    "CLIENT_URL" : "http://localhost:3000"
 }

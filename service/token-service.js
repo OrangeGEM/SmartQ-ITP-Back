@@ -19,4 +19,31 @@ async function saveToken(userId, refreshToken) {
     return token;
 }
 
-module.exports = { generateTokens, saveToken };
+async function removeToken(refreshToken) {
+    const tokenData = await tokenModel.deleteOne({ refreshToken });
+    return tokenData;
+}
+
+function validateAccessToken(token) {
+    try {
+        const userData = jwt.verify(token, config.get('JWT_ACCESS_SECRET'));
+        return userData;
+    } catch(e) {
+        return null;
+    }   
+}
+
+function validateRefreshToken(token) {
+    try {
+        const userData = jwt.verify(token, config.get('JWT_REFRESH_SECRET'));
+        return userData;
+    } catch(e) {
+        return null;
+    }   
+}
+
+function findToken(refreshToken) {
+    const tokenData = await.tokenModel.findOne({ refreshToken });
+}
+
+module.exports = { generateTokens, saveToken, removeToken, validateAccessToken, validateRefreshToken, findToken };

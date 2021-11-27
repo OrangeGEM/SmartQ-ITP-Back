@@ -3,41 +3,45 @@ const router = Router();
 const config = require('config');
 const bcrypt = require('bcryptjs');
 const uuid = require('uuid');
-const { check, validationResult } = require('express-validator');
+const { body, check, validationResult } = require('express-validator');
 const UserModel = require('../models/User'); //Mongo Model
 const { sendActivationMail } = require('../service/mail-service')
-const { generateTokens, saveToken } = require('../service/token-service');
+const { generateTokens, saveToken, removeToken, validateAccessToken, validateRefreshToken, findToken  } = require('../service/token-service');
 const UserDto = require('../dtos/user-dto');
 // api/auth/login
-router.post('/login', 
+router.post(
+    '/login', 
+    body('email').isEmail(), 
+    body('password').isLength({ min:6, max: 32 }),
     async (req, res)=> {
     
     try {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(400).json({ message: 'Ошибка валидации', errors: errors.array() })
+        }
 
         const {email, password} = req.body;
 
-        if(email === ''){
-            return res.status(400).json({ message: 'Некорректный email' });
-        }
-
-        if(password.length < 6) {
-            return res.status(400).json({ message: 'Пароль меньше 6 символов' });
-        }
-
-        const user = await UserModel.findOne({ email }) //Поиск 
+        const user = await UserModel.findOne({ email })
+        
         if(!user) {
-            return res.status(400).json({ message: 'Пользователь не найден' })
+            res.status(400).json({ message:'Пользователь не найден' })
         }
-
-        const isMatch = await bcrypt.compare(password, user.password); //Проверка паролей
-        if(!isMatch) {
-            return res.status(400).json({ message: 'Неверный пароль' });
+        const isPassEquels = await bcrypt.compare(password, user.password);
+        if(!isPassEquels) {
+            res.status(400).json({ message: 'Пароль не верный' })
         }
+        const userDto = new UserDto(user);
+        const tokens = generateTokens({ ...userDto })
 
-        res.status(200).json({ message:'Аутентифицирован' }); //Auth - Next
+        await saveToken(userDto.id, tokens.refreshToken); 
+        console.log('')
+        res.cookie('refreshToken', tokens.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true});
+        return res.json({userDto, ...tokens})
+        
     } catch(e) {
         console.log(e);
-        res.status(500).json({ message:e.array() })
     }
     
 });
@@ -45,22 +49,21 @@ router.post('/login',
 
 // api/auth/register
 router.post(
-    '/register', 
+    '/register',
+    body('email').isEmail(), 
+    body('password').isLength({ min:6, max: 32 }),
     async (req, res)=> {
 
     try {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(400).json({ message: 'Ошибка валидации', errors: errors.array() })
+        }
 
         const {email, password, rpassword} = req.body; 
 
-        if(email === ''){
-            return res.status(400).json({ message: 'Некорректный email' });
-        }
-
-        if(password.length < 6) {
-            if(password != rpassword) { //Проверка на соответствие паролей
-                return res.status(400).json({ message: 'Пароли не соответствуют друг другу' });
-            }
-            return res.status(400).json({ message: 'Пароль меньше 6 символов' });
+        if(password != rpassword) { //Проверка на соответствие паролей
+            return res.status(400).json({ message: 'Пароли не соответствуют друг другу' });
         }
 
         const candidate = await UserModel.findOne({ email }); //Проверка на наличие 
@@ -93,17 +96,74 @@ router.post(
 
 });
 
-router.post('/logout', async (req,res) => {
-    return res.status(200).json({ message:'Done' })
+router.post('/logout', async (req, res, next) => {
+    try {
+        const { refreshToken } = req.headers.cookie;
+        const token = await removeToken(refreshToken);
+
+        res.clearCookie('refreshToken');
+        return res.json(token);
+    } catch(e) {    
+        console.log(e);
+        return res.status(500).json({ message:e });
+    }
 });
 
-router.get('/refresh', async (req,res) => {
-    return res.status(200).json({ message:'Done' })
+// router.post('/refresh', async (req, res, next) => {
+//     try {
+//         const { refreshToken } = req.headers.cookie;
+//         console.log(refreshToken)
+//         await (async () => {
+//             if(!refreshToken) {
+//                 throw new Error({ message: 'Пользователь не авторизован' })
+//             }
+//             const userData = validateRefreshToken(refreshToken);
+//             const tokenFromDb = await findToken(refreshToken);
+
+//             if(!userData || !tokenFromDb) {
+//                 throw new Error({ message: 'Пользователь не авторизован' })
+//             }
+//             console.log(userData);
+//             const user = await UserModel.findById(userData.id);
+//             const userDto = new UserDto(user);
+//             const tokens = generateTokens({ ...userDto });
+
+//             await saveToken(userDto.id, tokens.refreshToken);
+//             return res.json({ userDto, ...tokens })
+
+//         })();
+
+//         res.cookie('refreshToken', tokens.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true});
+//     } catch (e) {
+//         res.status(402).json(e.message);
+//     }
+// });
+
+router.get('/activate/:link', async (req, res) => {
+    try {
+        const activationLink = req.params.link;
+        await ( async () => {
+            const user = await UserModel.findOne({ activationLink }) 
+            if(!user) {
+                throw new Error('Некорректная ссылка активации')
+            }
+            user.isActivated = true;
+            await user.save();
+        })();
+
+        return res.redirect(config.get('CLIENT_URL'))
+
+    } catch(e) {
+        console.log(e);
+    }
 });
 
-router.get('/activate/:link', async (req,res) => {
-    //await sendActivationMail();
-    return res.status(200).json({ message:'Done' })
+router.get('/getqueue', async (req, res) => {
+    try {
+
+    } catch(e) {
+        
+    }
 });
 
 module.exports = router;
