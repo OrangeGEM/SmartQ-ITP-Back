@@ -6,7 +6,7 @@ const uuid = require('uuid');
 const { body, check, validationResult } = require('express-validator');
 const UserModel = require('../models/User'); //Mongo Model
 const { sendActivationMail } = require('../service/mail-service')
-const { generateTokens, saveToken, validateAccessToken, validateRefreshToken, findToken  } = require('../service/token-service');
+const { generateTokens, saveToken, findToken, verifyTokens } = require('../service/token-service');
 const UserDto = require('../dtos/user-dto');
 // api/auth/login
 router.post(
@@ -111,17 +111,14 @@ router.post('/logout', async (req, res, next) => {
 
 router.post('/refresh', async (req, res, next) => {
     try {
-        const { accessToken } = req.cookies; 
+        const { accessToken, refreshToken } = req.cookies; 
         await (async () => {
-            if(!accessToken) {
+            if(!accessToken || !refreshToken) {
                 throw new Error({ message: 'Пользователь не авторизован' })
             }
-            const userData = validateAccessToken(accessToken);
-            console.log(userData);
 
-            if(!userData) {
-                throw new Error({ message: 'Пользователь не авторизован' })
-            }
+            const userData = verifyTokens({accessToken, refreshToken});
+
             const user = await UserModel.findById(userData.id);
             const userDto = new UserDto(user);
             const tokens = generateTokens({ ...userDto });

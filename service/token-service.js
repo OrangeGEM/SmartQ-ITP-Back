@@ -24,26 +24,22 @@ async function saveToken(userId, refreshToken) {
 //     return tokenData;
 // }
 
-function validateAccessToken(token) {
-    try {
-        const userData = jwt.verify(token, config.get('JWT_ACCESS_SECRET'));
-        return userData;
+function verifyTokens(tokens) {
+    try {   
+        const accessData = jwt.verify(tokens.accessToken, config.get('JWT_ACCESS_SECRET'));
+        if(!accessData) {
+            const refreshData = jwt.verify(tokens.refreshToken, config.get('JWT_REFRESH_SECRET'));
+            return refreshData ? refreshData : null;
+        }
+        return accessData;
     } catch(e) {
+        console.log(e);
         return null;
-    }   
-}
-
-function validateRefreshToken(token) {
-    try {
-        const userData = jwt.verify(token, config.get('JWT_REFRESH_SECRET'));
-        return userData;
-    } catch(e) {
-        return null;
-    }   
+    }
 }
 
 function findToken(refreshToken) {
     const tokenData = await.tokenModel.findOne({ refreshToken });
 }
 
-module.exports = { generateTokens, saveToken, validateAccessToken, validateRefreshToken, findToken };
+module.exports = { generateTokens, saveToken, findToken, verifyTokens };
