@@ -19,10 +19,10 @@ async function saveToken(userId, refreshToken) {
     return token;
 }
 
-async function removeToken(refreshToken) {
-    const tokenData = await tokenModel.deleteOne({ refreshToken });
-    return tokenData;
-}
+// async function removeToken(refreshToken) {
+//     const tokenData = await tokenModel.deleteOne({ refreshToken });
+//     return tokenData;
+// }
 
 function validateAccessToken(token) {
     try {
@@ -46,4 +46,4 @@ function findToken(refreshToken) {
     const tokenData = await.tokenModel.findOne({ refreshToken });
 }
 
-module.exports = { generateTokens, saveToken, removeToken, validateAccessToken, validateRefreshToken, findToken };
+module.exports = { generateTokens, saveToken, validateAccessToken, validateRefreshToken, findToken };

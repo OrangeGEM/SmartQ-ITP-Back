@@ -6,7 +6,7 @@ const uuid = require('uuid');
 const { body, check, validationResult } = require('express-validator');
 const UserModel = require('../models/User'); //Mongo Model
 const { sendActivationMail } = require('../service/mail-service')
-const { generateTokens, saveToken, removeToken, validateAccessToken, validateRefreshToken, findToken  } = require('../service/token-service');
+const { generateTokens, saveToken, validateAccessToken, validateRefreshToken, findToken  } = require('../service/token-service');
 const UserDto = require('../dtos/user-dto');
 // api/auth/login
 router.post(
@@ -35,7 +35,9 @@ router.post(
         const userDto = new UserDto(user);
         const tokens = generateTokens({ ...userDto })
 
-        await saveToken(userDto.id, tokens.refreshToken); 
+        // await saveToken(userDto.id, tokens.refreshToken); 
+
+        res.cookie('accessToken', tokens.accessToken, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true });
         res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
         return res.status(200).json({userDto, ...tokens});
         
@@ -80,10 +82,11 @@ router.post(
 
         const userDto = new UserDto(user);
         const tokens = await generateTokens({...userDto});
-        await saveToken(userDto.id, tokens.refreshToken); 
+        // await saveToken(userDto.id, tokens.); 
         await user.save();
 
-        res.cookie('refreshToken', tokens.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true});
+        res.cookie('accessToken', tokens.accessToken, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true });
+        res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
 
         //console.log("[MongoDB] -> User Add")
         return res.json({userDto, ...tokens})
@@ -96,12 +99,10 @@ router.post(
 });
 
 router.post('/logout', async (req, res, next) => {
-    try {
-        const { refreshToken } = req.headers.cookie;
-        const token = await removeToken(refreshToken);
-
-        res.clearCookie('refreshToken');
-        return res.json(token);
+    try { 
+        res.clearCookie('accessToken');
+        res.clearCookie('refreshToken')
+        return res.status(200).json({ message: 'Токен удален'});
     } catch(e) {    
         console.log(e);
         return res.status(500).json({ message:e });
