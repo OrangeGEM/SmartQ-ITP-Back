@@ -109,35 +109,33 @@ router.post('/logout', async (req, res, next) => {
     }
 });
 
-// router.post('/refresh', async (req, res, next) => {
-//     try {
-//         const { refreshToken } = req.headers.cookie;
-//         console.log(refreshToken)
-//         await (async () => {
-//             if(!refreshToken) {
-//                 throw new Error({ message: 'Пользователь не авторизован' })
-//             }
-//             const userData = validateRefreshToken(refreshToken);
-//             const tokenFromDb = await findToken(refreshToken);
+router.post('/refresh', async (req, res, next) => {
+    try {
+        const { accessToken } = req.cookies; 
+        await (async () => {
+            if(!accessToken) {
+                throw new Error({ message: 'Пользователь не авторизован' })
+            }
+            const userData = validateAccessToken(accessToken);
+            console.log(userData);
 
-//             if(!userData || !tokenFromDb) {
-//                 throw new Error({ message: 'Пользователь не авторизован' })
-//             }
-//             console.log(userData);
-//             const user = await UserModel.findById(userData.id);
-//             const userDto = new UserDto(user);
-//             const tokens = generateTokens({ ...userDto });
+            if(!userData) {
+                throw new Error({ message: 'Пользователь не авторизован' })
+            }
+            const user = await UserModel.findById(userData.id);
+            const userDto = new UserDto(user);
+            const tokens = generateTokens({ ...userDto });
 
-//             await saveToken(userDto.id, tokens.refreshToken);
-//             return res.json({ userDto, ...tokens })
+            res.cookie('refreshToken', tokens.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true});
+            res.cookie('accessToken', tokens.accessToken, {maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true});
 
-//         })();
-
-//         res.cookie('refreshToken', tokens.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true});
-//     } catch (e) {
-//         res.status(402).json(e.message);
-//     }
-// });
+            return res.json({ userDto, ...tokens })
+        })();
+    } catch (e) {
+        console.log(e);
+        res.status(402).json(e.message);
+    }
+});
 
 router.get('/activate/:link', async (req, res) => {
     try {
