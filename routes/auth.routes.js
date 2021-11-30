@@ -36,9 +36,8 @@ router.post(
         const tokens = generateTokens({ ...userDto })
 
         await saveToken(userDto.id, tokens.refreshToken); 
-        console.log('')
-        res.cookie('refreshToken', tokens.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true});
-        return res.json({userDto, ...tokens})
+        res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
+        return res.status(200).json({userDto, ...tokens});
         
     } catch(e) {
         console.log(e);
