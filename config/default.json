@@ -1,0 +1,13 @@
+{
+    "port" : 5001,
+    "JWT_ACCESS_SECRET" : "smartq-access",
+    "JWT_REFRESH_SECRET" : "smartq-refresh",
+    "mongoUrl" : "mongodb+srv://Orange:Vetel12312@cluster0.mdnoh.mongodb.net/smartq?retryWrites=true&w=majority",
+    "SMTP_SERVICE" : "Yandex",
+    "SMTP_HOST" : "smtp.yandex.ru",
+    "SMTP_PORT" : "465",
+    "SMTP_USER" : "Orange-temp@yandex.ru",
+    "SMTP_PASSWORD" : "vmedkgbgjenroclp",
+    "API_URL" : "http://localhost:5001",
+    "CLIENT_URL" : "http://localhost:3000"
+}
