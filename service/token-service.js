@@ -26,9 +26,9 @@ async function saveToken(userId, refreshToken) {
 
 function verifyTokens(tokens) {
     try {   
-        const accessData = jwt.verify(tokens.accessToken, config.get('JWT_ACCESS_SECRET'));
+        const accessData = tokens.accessToken ? jwt.verify(tokens.accessToken, config.get('JWT_ACCESS_SECRET')) : null;
         if(!accessData) {
-            const refreshData = jwt.verify(tokens.refreshToken, config.get('JWT_REFRESH_SECRET'));
+            const refreshData = tokens.refreshToken ? jwt.verify(tokens.refreshToken, config.get('JWT_REFRESH_SECRET')) : null;
             return refreshData ? refreshData : null;
         }
         return accessData;

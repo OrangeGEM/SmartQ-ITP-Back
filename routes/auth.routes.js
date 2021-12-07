@@ -156,30 +156,24 @@ router.get('/activate/:link', async (req, res) => {
 router.post('/verify', async (req, res) => {
     try {
         const { accessToken, refreshToken } = req.cookies; 
-        
-        console.log( 'body: ', req.body );
-        console.log( 'headers: ', req.headers )
 
         await (async () => {
-            if(!accessToken || !refreshToken) {
-                res.status(401).json({ message: 'Пользователь не авторизован'  })
-                return res.redirect(config.get('CLIENT_URL'))
+            if(!refreshToken) {
+                return res.status(401).json({ message: 'Пользователь не авторизован'  })
             }   
 
             const userData = verifyTokens({accessToken, refreshToken});
             console.log( 'Userdata: ', userData );
             if(!userData) {
-                res.status(401).json({ message: 'Срок действия токена закончен'  })
-                return res.redirect(config.get('CLIENT_URL'))
+                return res.status(401).json({ message: 'Срок действия токена истек'  })
             }
-
+ 
             const user = await UserModel.findById(userData.id);
             console.log('userdb: ', user);
             if(!user) {
-                res.status(401).json({ message: 'Пользователь не зарегистрирован'  })
-                return res.redirect(config.get('CLIENT_URL'))
+                return res.status(401).json({ message: 'Пользователь не зарегистрирован'  })
             }
-            
+
             return res.status(200).json({ done: true });
             
             // return res.json({ userDto, ...tokens })
