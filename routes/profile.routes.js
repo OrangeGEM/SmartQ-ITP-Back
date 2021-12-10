@@ -37,7 +37,7 @@ router.post('/setqueue', async (req, res) => {
             return res.status(401).json({ message: 'Пользователь не авторизован' })
         } 
         // console.log({ user_id: userData.id, ...req.body });
-        await QueueModel.create({ user_id: userData.id, ...req.body })
+        await QueueModel.create({ user_id: userData.id, ...req.body, ticketNum: 0 })
         const setQueue = await QueueModel.find({ user_id: userData.id })
         //console.log(setQueue);
         return res.status(200).json({ message: 'Очередь создана', setQueue })
@@ -75,14 +75,35 @@ router.post('/updatequeue', async (req, res) => {
         // console.log('SET QUEUE: ', req.body)
         const { accessToken, refreshToken } = req.cookies;
         const userData = verifyTokens({accessToken, refreshToken})
+        const queueMembers = [];
         if(!userData) {
             return res.status(401).json({ message: 'Пользователь не авторизован' })
         } 
-        //console.log('Updating: ', { ...req.body });
-        await QueueModel.findByIdAndUpdate(req.body._id, { title: req.body.title, key: req.body.key, desc: req.body.desc })
+
+
+
+        if(req.body.title) {
+            await QueueModel.findByIdAndUpdate(req.body._id, { 
+                title: req.body.title, 
+                key: req.body.key, 
+                desc: req.body.desc 
+            })
+        } else {
+            const queue = await QueueModel.findById(req.body._id)
+            queue.ticketNum++;
+            queue.units.push({
+                id: queue.ticketNum, 
+                ticket:'A'+(queue.ticketNum.toString().padStart(3, 0)), 
+                phone: req.body.phone, 
+                time: req.body.time
+            });
+            queueMembers.push(...queue.units)
+            await queue.save();
+        }
+        
         const setQueue = await QueueModel.find({ userId: userData.id });
         // console.log(setQueue);
-        return res.status(200).json({ message: 'Очередь обновлена', setQueue })
+        return res.status(200).json({ message: 'Очередь обновлена', setQueue, queueMembers })
 
     } catch(e) { 
         console.log(e)
@@ -98,12 +119,12 @@ router.post('/updatemembers', async (req, res) => {
         if(!userData) {
             return res.status(401).json({ message: 'Пользователь не авторизован' })
         }
-
+        //console.log(req.body)
         const queue = await QueueModel.findById( req.body.id );
         queue.units = req.body.units;
         queue.save();
 
-        return res.status(200).json({ message: 'Очередь обновлена', queue: queue.units })
+        return res.status(200).json({ message: 'Участники обновлены', queue: queue.units })
 
     } catch(e) { 
         console.log(e)

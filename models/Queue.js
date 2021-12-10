@@ -14,7 +14,8 @@ const QueueSchema = new Schema({
     "desc" : { type: String },
     "time" : { type: String, default: `${month}. ${day} ${year}`},
     "wrap" : { type: Boolean, default: false },
-    "units" : []
+    "units" : [],
+    "ticketNum" : { type: Number }
 })
 
 module.exports = model( 'Queue', QueueSchema );

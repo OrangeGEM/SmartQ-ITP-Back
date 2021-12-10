@@ -163,13 +163,13 @@ router.post('/verify', async (req, res) => {
             }   
 
             const userData = verifyTokens({accessToken, refreshToken});
-            console.log( 'Userdata: ', userData );
+            //console.log( 'Userdata: ', userData );
             if(!userData) {
                 return res.status(401).json({ message: 'Срок действия токена истек'  })
             }
  
             const user = await UserModel.findById(userData.id);
-            console.log('userdb: ', user);
+            //console.log('userdb: ', user);
             if(!user) {
                 return res.status(401).json({ message: 'Пользователь не зарегистрирован'  })
             }
