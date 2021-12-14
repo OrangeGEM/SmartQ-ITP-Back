@@ -43,10 +43,6 @@ start();
 
 io.on('connection', (socket) => {
     console.log('[SocketIO] -> Client connected with id: ', socket.id)
-    
-    socket.on('queueChange', (data) => {
-        console.log(data)
-    })
 
     socket.on('disconnect', (reason) => {
         console.log('[SocketIO] -> Client disconnected with reason: ', reason)
