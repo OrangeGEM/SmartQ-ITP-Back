@@ -114,7 +114,7 @@ router.post('/refresh', async (req, res, next) => {
         const { accessToken, refreshToken } = req.cookies; 
         await (async () => {
             if(!accessToken || !refreshToken) {
-                throw new Error({ message: 'Пользователь не авторизован' })
+                return res.status(401).json({ message: 'Пользователь не авторизован'  })
             }
 
             const userData = verifyTokens({accessToken, refreshToken});
@@ -130,7 +130,7 @@ router.post('/refresh', async (req, res, next) => {
         })();
     } catch (e) {
         console.log(e);
-        res.status(402).json(e.message);
+        res.status(500).json(e);
     }
 });
 
@@ -153,12 +153,34 @@ router.get('/activate/:link', async (req, res) => {
     }
 });
 
-router.get('/getqueue', async (req, res) => {
+router.post('/verify', async (req, res) => {
     try {
+        const { accessToken, refreshToken } = req.cookies; 
 
+        await (async () => {
+            if(!refreshToken) {
+                return res.status(401).json({ message: 'Пользователь не авторизован'  })
+            }   
+
+            const userData = verifyTokens({accessToken, refreshToken});
+            //console.log( 'Userdata: ', userData );
+            if(!userData) {
+                return res.status(401).json({ message: 'Срок действия токена истек'  })
+            }
+ 
+            const user = await UserModel.findById(userData.id);
+            //console.log('userdb: ', user);
+            if(!user) {
+                return res.status(401).json({ message: 'Пользователь не зарегистрирован'  })
+            }
+
+            return res.status(200).json({ message: 'Пользователь авторизован', email: user.email });
+        })();
     } catch(e) {
-        
+        console.log(e);
+        res.status(500).json(e);
     }
+    
 });
 
 module.exports = router;
