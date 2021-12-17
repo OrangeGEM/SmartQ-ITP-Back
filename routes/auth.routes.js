@@ -174,7 +174,7 @@ router.post('/verify', async (req, res) => {
                 return res.status(401).json({ message: 'Пользователь не зарегистрирован'  })
             }
 
-            return res.status(200).json({ message: 'Пользователь авторизован', email: user.email });
+            return res.status(200).json({ message: 'Пользователь авторизован', email: user.email, id: user._id });
         })();
     } catch(e) {
         console.log(e);
