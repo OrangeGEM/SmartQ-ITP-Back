@@ -12,8 +12,8 @@ const QueueSchema = new Schema({
     "title" : { type: String },
     "keyword" : { type: String, required: true },
     "description" : { type: String },
-    "data" : { type: String, default: `${month}. ${day} ${year}`},
-    "wrap" : { type: Boolean, default: false },
+    "date" : { type: String, default: `${month}. ${day} ${year}`},
+    "wrap" : { type: Boolean, default: false },     
     "units" : [],
     "ticketNum" : { type: Number }
 })
