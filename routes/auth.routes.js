@@ -134,7 +134,7 @@ router.post('/refresh', async (req, res, next) => {
     }
 });
 
-router.get('/activate/:link', async (req, res) => {
+router.get('/activate/:link', async (req, res) => { //todo rewrite 
     try {
         const activationLink = req.params.link;
         await ( async () => {

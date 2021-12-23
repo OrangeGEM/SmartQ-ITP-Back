@@ -63,7 +63,7 @@ router.post('/editqueue', async (req, res) => {
 router.post('/deletemember', async (req, res) => {
     try{
         const filter = {_id: req.body.queueId}
-        const update = {units: [...req.body.members]}
+        const update = {units: [...req.body.members]} //todo fixed it
 
         const queue = await QueueModel.findOneAndUpdate(filter, update)
         return res.status(200).json({ message: 'Участник удален', ok:'ok' });
