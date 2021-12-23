@@ -25,6 +25,7 @@ app.use(cors({
 
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/profile', require('./routes/profile.routes'));
+app.use('/api/landing', require('./routes/landing.routes'));
 
 
 async function start() {

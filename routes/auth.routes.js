@@ -30,7 +30,7 @@ router.post(
         }
         const isPassEquels = await bcrypt.compare(password, user.password);
         if(!isPassEquels) {
-            res.status(400).json({ message: 'Пароль не верный' })
+            res.status(400).json({ message: 'Пароль неверный' })
         }
         const userDto = new UserDto(user);
         const tokens = generateTokens({ ...userDto })
@@ -134,7 +134,7 @@ router.post('/refresh', async (req, res, next) => {
     }
 });
 
-router.get('/activate/:link', async (req, res) => {
+router.get('/activate/:link', async (req, res) => { //todo rewrite 
     try {
         const activationLink = req.params.link;
         await ( async () => {
