@@ -8,6 +8,8 @@ const UserModel = require('../models/User'); //Mongo Model
 const { sendActivationMail } = require('../service/mail-service')
 const { generateTokens, saveToken, findToken, verifyTokens } = require('../service/token-service');
 const UserDto = require('../dtos/user-dto');
+const fileService = require('../service/file-service')
+const File = require('../models/File')
 // api/auth/login
 router.post(
     '/login', 
@@ -84,6 +86,8 @@ router.post(
         const tokens = await generateTokens({...userDto});
         // await saveToken(userDto.id, tokens.); 
         await user.save();
+
+        await fileService.createDir(new File({user: user.id, name:''}))
 
         res.cookie('accessToken', tokens.accessToken, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true });
         res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
