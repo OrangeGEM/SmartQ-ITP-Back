@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const socketIO = require('socket.io');
-
+const fileUpload = require('express-fileupload');
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server, {
@@ -15,6 +15,7 @@ const io = socketIO(server, {
     }
 })
 
+app.use(fileUpload({}));
 app.use(express.json({ extended: true }))
 app.use(cookieParser());
 app.use(cors({
@@ -25,6 +26,8 @@ app.use(cors({
 
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/profile', require('./routes/profile.routes'));
+app.use('/api/landing', require('./routes/landing.routes'));
+app.use('/api/files', require('./routes/files.routes'));
 
 
 async function start() {

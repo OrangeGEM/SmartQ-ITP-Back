@@ -8,6 +8,8 @@ const UserModel = require('../models/User'); //Mongo Model
 const { sendActivationMail } = require('../service/mail-service')
 const { generateTokens, saveToken, findToken, verifyTokens } = require('../service/token-service');
 const UserDto = require('../dtos/user-dto');
+const fileService = require('../service/file-service')
+const File = require('../models/File')
 // api/auth/login
 router.post(
     '/login', 
@@ -30,7 +32,7 @@ router.post(
         }
         const isPassEquels = await bcrypt.compare(password, user.password);
         if(!isPassEquels) {
-            res.status(400).json({ message: 'Пароль не верный' })
+            res.status(400).json({ message: 'Пароль неверный' })
         }
         const userDto = new UserDto(user);
         const tokens = generateTokens({ ...userDto })
@@ -85,6 +87,8 @@ router.post(
         // await saveToken(userDto.id, tokens.); 
         await user.save();
 
+        await fileService.createDir(new File({user: user.id, name:''}))
+
         res.cookie('accessToken', tokens.accessToken, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true });
         res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
 
@@ -134,7 +138,7 @@ router.post('/refresh', async (req, res, next) => {
     }
 });
 
-router.get('/activate/:link', async (req, res) => {
+router.get('/activate/:link', async (req, res) => { //todo rewrite 
     try {
         const activationLink = req.params.link;
         await ( async () => {
@@ -174,7 +178,7 @@ router.post('/verify', async (req, res) => {
                 return res.status(401).json({ message: 'Пользователь не зарегистрирован'  })
             }
 
-            return res.status(200).json({ message: 'Пользователь авторизован', email: user.email });
+            return res.status(200).json({ message: 'Пользователь авторизован', email: user.email, id: user._id });
         })();
     } catch(e) {
         console.log(e);
