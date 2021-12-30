@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const router = Router();
-
+const FileController = require('../controllers/FileController');
+const File = require('../models/File')
 const config = require('config');
 const uuid = require('uuid');
 
@@ -22,9 +23,14 @@ router.post('/getqueue', async (req, res) => {
 //api/profile/createqueue
 router.post('/createqueue', async (req, res) => {
     try{
-        console.log(req.body);
-        const queue = await QueueModel.create(req.body)
-        return res.status(200).json({ message:'Очередь создана', _id: queue._id, ok:"ok" });
+        const data = req.body;
+        const fileData = await FileController.createDir({name: data.title, type:"dir", userId: data.user_id})
+        data.dir_id = (fileData._id).toString();
+
+        //console.log(data)
+
+        const queue = await QueueModel.create(data)
+        return res.status(200).json({ message:'Очередь создана', _id: queue._id, dir_id: data.dir_id, ok:"ok" });
     } catch(e) {
         console.log(e)
         return res.status(500).json({ message: e }); 
