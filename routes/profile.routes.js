@@ -25,12 +25,14 @@ router.post('/createqueue', async (req, res) => {
     try{
         const data = req.body;
         const fileData = await FileController.createDir({name: data.title, type:"dir", userId: data.user_id})
-        data.dir_id = (fileData._id).toString();
+        // console.log(fileData)
+        data.dir_id = fileData._id;
 
         //console.log(data)
 
         const queue = await QueueModel.create(data)
-        return res.status(200).json({ message:'Очередь создана', _id: queue._id, dir_id: data.dir_id, ok:"ok" });
+        console.log(queue)
+        return res.status(200).json({ message:'Очередь создана', queue: queue, ok:"ok" });
     } catch(e) {
         console.log(e)
         return res.status(500).json({ message: e }); 
@@ -82,7 +84,7 @@ router.post('/deletemember', async (req, res) => {
 //api/profile/createmember
 router.post('/createmember', async (req, res) => {
     try{
-        //console.log(req.body)
+        console.log(req.body)
 
         const queue = req.body.queue;
         const member = req.body.member;
@@ -97,15 +99,26 @@ router.post('/createmember', async (req, res) => {
             date: member.date
         }
         //console.log('Pushing member', pushMember)
-        queue.units.push(pushMember);
+        
         //console.log('All units after push:', queue.units);
 
         //console.log(queue.ticketNum)
 
+        const fileData = await FileController.createDir({name: pushMember.id, type:"dir", parent: req.body.dir_id, userId: queue.user_id})
+        //console.log(fileData)
+
+        pushMember.dir_id = fileData._id
+        pushMember.parent_id = fileData.parent
+        console.log(pushMember)
+
+        queue.units.push(pushMember);
         const update = {ticketNum: queue.ticketNum, units: [...queue.units]  }
         const filter = {_id: queue._id}
         const queueUpdate = await QueueModel.findOneAndUpdate(filter, update)
-        return res.status(200).json({ message: 'Участник добавлен', ok:'ok', member: pushMember, ticketNum: queue.ticketNum});
+
+        console.log(queueUpdate)
+
+        return res.status(200).json({ message: 'Участник добавлен', ok:'ok', member: pushMember, ticketNum: queue.ticketNum, dir_id: pushMember.dir_id});
     } catch(e) {
         console.log(e)
         return res.status(500).json({ message: e }); 

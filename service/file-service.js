@@ -4,7 +4,7 @@ const File = require('../models/File');
 
 class FileService {
     createDir(file) {
-        //console.log(file)
+        console.log('Service: ', file)
         const filePath = `${config.get('filePath')}\\${file.user}\\${file.path}`
         //console.log(filePath)
         return new Promise((resolve, reject) => {
