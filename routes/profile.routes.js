@@ -6,12 +6,12 @@ const uuid = require('uuid');
 
 const { generateTokens, saveToken, findToken, verifyTokens } = require('../service/token-service');
 
-const QueueModel = require('../models/Queue')
+const QueueModel = require('../models/Queue');
 
 //api/profile/getqueue
 router.post('/getqueue', async (req, res) => {
     try{
-        const queuesUsers = await QueueModel.find({ user_id: req.body.userId }) 
+        const queuesUsers = await QueueModel.find({ user_id: req.body.userId, active: true }) 
         return res.status(200).json(queuesUsers);
     } catch(e) {
         console.log(e)
@@ -35,7 +35,7 @@ router.post('/createqueue', async (req, res) => {
 router.post('/deletequeue', async (req, res) => {
     try{
         console.log(req.body)
-        const queuesUsers = await QueueModel.findOneAndDelete({ _id: req.body.queueId })
+        const queuesUsers = await QueueModel.findOneAndUpdate({ _id: req.body.queueId, active: false })
         return res.status(200).json({ message:'Очередь удалена', ok:"ok" });
     } catch(e) {
         console.log(e)
@@ -43,7 +43,7 @@ router.post('/deletequeue', async (req, res) => {
     }
 })
 
-//api/profile/editqueue
+//api/profile/editqueue 
 router.post('/editqueue', async (req, res) => {
     try{
         console.log(req.body)
@@ -81,14 +81,16 @@ router.post('/createmember', async (req, res) => {
         const queue = req.body.queue;
         const member = req.body.member;
         queue.ticketNum++;
+        queue.idNum++;
 
         //console.log('units in req queue', queue.units)
 
         const pushMember = {
-            id: queue.ticketNum, 
+            id: queue.idNum, 
             ticket:'A'+(queue.ticketNum.toString().padStart(3, 0)), 
             phone: member.phone, 
-            date: member.date
+            date: member.date,
+            active: true
         }
         //console.log('Pushing member', pushMember)
         queue.units.push(pushMember);
@@ -96,7 +98,7 @@ router.post('/createmember', async (req, res) => {
 
         //console.log(queue.ticketNum)
 
-        const update = {ticketNum: queue.ticketNum, units: [...queue.units]  }
+        const update = {ticketNum: queue.ticketNum, idNum: queue.idNum, units: [...queue.units]  }
         const filter = {_id: queue._id}
         const queueUpdate = await QueueModel.findOneAndUpdate(filter, update)
         return res.status(200).json({ message: 'Участник добавлен', ok:'ok', member: pushMember, ticketNum: queue.ticketNum});
@@ -131,5 +133,25 @@ router.post('/editmember', async (req, res) => {
         return res.status(500).json({ message: e }); 
     }
 })
+
+//api/profile/resetmembers
+router.post('/resetmembers', async (req, res) => {
+    try{
+        const filter = {_id: req.body.id}
+        const queue = await QueueModel.findOne(filter);
+        queue.units.forEach(element => {
+            element.active = false
+        });
+        queue.ticketNum = 0;
+
+        console.log(queue);
+        await QueueModel.findOneAndUpdate(filter, queue);
+        return res.status(200).json({ message: 'Участники обнулены', queue: queue, ok:'ok' });
+    } catch(e) {
+        console.log(e)
+        return res.status(500).json({ message: e }); 
+    }
+})
+
 
 module.exports = router;
