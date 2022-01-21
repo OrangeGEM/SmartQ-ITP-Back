@@ -2,7 +2,8 @@ const {Schema, model, Types} = require('mongoose');
 
 const QueueSchema = new Schema({
     "user_id" : { type: String, required: true },
-    "title" : { type: String },
+    "dir_id" : { type: String, required: true},
+    "title" : { type: String, required: true },
     "keyword" : { type: String, required: true },
     "description" : { type: String },
     "date" : { type: String },
