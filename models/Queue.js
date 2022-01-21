@@ -9,7 +9,10 @@ const QueueSchema = new Schema({
     "date" : { type: String },
     "wrap" : { type: Boolean, default: false },     
     "units" : [],
-    "ticketNum" : { type: Number }
+    "ticketNum" : { type: Number },
+    "idNum" : { type: Number },
+    "active" : { type: Boolean, default: true }
 })
+
 
 module.exports = model( 'Queue', QueueSchema );
